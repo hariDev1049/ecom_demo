@@ -2,10 +2,30 @@ import data from '@/lib/data';
 import Link from 'next/link';
 import Image from 'next/image';
 import AddToCart from '@/components/Products/AddToCart';
+import productServices from '@/lib/services/ProductServices';
+import { convertDocToObj } from '@/lib/utils';
 
-const ProductDetail = ({ params }: { params: { slug: string } }) => {
-  const product = data.products.find((product) => product.slug === params.slug);
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: String };
+}) {
+  const product = await productServices.getProductBySlug(params.slug);
+  if (!product) {
+    return <h2>OOps...No Product found..!</h2>;
+  }
+  return {
+    title: product.name,
+    description: product.description,
+  };
+}
 
+export default async function ProductDetails({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const product = await productServices.getProductBySlug(params.slug);
   if (!product) {
     return <h2>OOps...No Product found..!</h2>;
   }
@@ -62,7 +82,14 @@ const ProductDetail = ({ params }: { params: { slug: string } }) => {
             </div>
             {product.countInStock !== 0 && (
               <div className="card-actions justify-center">
-                <AddToCart item={{ ...product, qty: 0, color: '', size: '' }} />
+                <AddToCart
+                  item={{
+                    ...convertDocToObj(product),
+                    qty: 0,
+                    color: '',
+                    size: '',
+                  }}
+                />
               </div>
             )}
           </div>
@@ -70,6 +97,4 @@ const ProductDetail = ({ params }: { params: { slug: string } }) => {
       </div>
     </>
   );
-};
-
-export default ProductDetail;
+}
